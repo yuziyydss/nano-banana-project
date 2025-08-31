@@ -1,7 +1,8 @@
 # 🍌 Nano Banana Image Editor 
 Release Version: (v1.0)
 
-> **⏬ Get Your Free 1-Click Install Copy!** Join the [Vibe Coding is Life Skool Community](https://www.skool.com/vibe-coding-is-life/about?ref=456537abaf37491cbcc6976f3c26af41) and get a **1-click Bolt.new installation clone** of this app, plus access to live build sessions, exclusive project downloads, AI prompts, masterclasses, and the best vibe coding community on the web!
+### **⏬ Get Your Free 1-Click Install Copy!** 
+Join the [Vibe Coding is Life Skool Community](https://www.skool.com/vibe-coding-is-life/about?ref=456537abaf37491cbcc6976f3c26af41) and get a **1-click ⚡Bolt.new installation clone**  of this app, plus access to live build sessions, exclusive project downloads, AI prompts, masterclasses, and the best vibe coding community on the web!
 
 ---
 
@@ -220,4 +221,4 @@ We welcome contributions! Please:
 
 ---
 
-**Built by [Mark Fulton](https://markfulton.com) ** | **Powered by Gemini 2.5 Flash Image** | **Made with Bolt.new**
+**Built by [Mark Fulton](https://markfulton.com)** | **Powered by Gemini 2.5 Flash Image** | **Made with Bolt.new**
