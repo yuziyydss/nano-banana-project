@@ -1,6 +1,7 @@
-# 🍌 Nano Banana Image Editor
+# 🍌 Nano Banana Image Editor 
+Release Version: (v1.0)
 
-> **🚀 Get Your Free Copy!** Join the [Vibe Coding is Life Skool Community](https://www.skool.com/vibe-coding-is-life/about?ref=456537abaf37491cbcc6976f3c26af41) and get a **1-click Bolt.new installation clone** of this app, plus access to live build sessions, exclusive project downloads, AI prompts, masterclasses, and the best vibe coding community on the web!
+> **⏬ Get Your Free 1-Click Install Copy!** Join the [Vibe Coding is Life Skool Community](https://www.skool.com/vibe-coding-is-life/about?ref=456537abaf37491cbcc6976f3c26af41) and get a **1-click Bolt.new installation clone** of this app, plus access to live build sessions, exclusive project downloads, AI prompts, masterclasses, and the best vibe coding community on the web!
 
 ---
 
@@ -8,7 +9,7 @@
 
 A production-ready React + TypeScript application for delightful image generation and conversational, region-aware revisions using Google's Gemini 2.5 Flash Image model. Built with modern web technologies and designed for both creators and developers.
 
-![Nano Banana Image Editor](https://images.pexels.com/photos/1037992/pexels-photo-1037992.jpeg?auto=compress&cs=tinysrgb&w=1200&h=400&fit=crop)
+![Nano Banana Image Editor](https://getsmartgpt.com/nano-banana-editor.jpg)
 
 ## ✨ Key Features
 
@@ -207,17 +208,16 @@ We welcome contributions! Please:
 - **Client-side API calls** - Currently uses direct API calls (implement backend proxy for production)
 - **Browser compatibility** - Requires modern browsers with Canvas and WebGL support
 - **Rate limits** - Subject to Google AI Studio rate limits
-- **Image size** - Optimized for 1024×1024 outputs (Gemini model limitation)
+- **Image size** - Optimized for 1024×1024 outputs (Gemini model output dimensions may vary)
 
-## 🎯 Roadmap
+## 🎯 Suggested Updates
 
 - [ ] Backend API proxy implementation
 - [ ] User authentication and project sharing
 - [ ] Advanced brush tools and selection methods
-- [ ] Batch processing capabilities
 - [ ] Plugin system for custom filters
 - [ ] Integration with cloud storage providers
 
 ---
 
-**Built with ❤️ by the Vibe Coding community** | **Powered by Gemini 2.5 Flash Image** | **Made with Bolt.new**
+**Built by [Mark Fulton](https://markfulton.com) ** | **Powered by Gemini 2.5 Flash Image** | **Made with Bolt.new**
