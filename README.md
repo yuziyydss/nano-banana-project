@@ -10,7 +10,9 @@ Join the [Vibe Coding is Life Skool Community](https://www.skool.com/vibe-coding
 
 A production-ready React + TypeScript application for delightful image generation and conversational, region-aware revisions using Google's Gemini 2.5 Flash Image model. Built with modern web technologies and designed for both creators and developers.
 
-![Nano Banana Image Editor](https://getsmartgpt.com/nano-banana-editor.jpg)
+[![Nano Banana Image Editor](https://getsmartgpt.com/nano-banana-editor.jpg)](https://nanobananaeditor.dev)
+
+🍌 [Try the LIVE Demo](https://nanobananaeditor.dev)
 
 ## ✨ Key Features
 
