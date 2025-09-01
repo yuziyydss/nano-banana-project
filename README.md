@@ -1,4 +1,4 @@
-# 🍌 Nano Banana Image Editor 
+# 🍌 Nano Banana AI Image Editor 
 Release Version: (v1.0)
 
 ### **⏬ Get Your Free 1-Click Install Copy!** 
