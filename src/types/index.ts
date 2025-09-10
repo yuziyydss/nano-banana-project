@@ -19,6 +19,8 @@ export interface Generation {
   outputAssets: Asset[];
   modelVersion: string;
   timestamp: number;
+  // 来自模型的文字响应（可选）
+  responseText?: string;
   costEstimate?: number;
 }
 
@@ -30,6 +32,8 @@ export interface Edit {
   instruction: string;
   outputAssets: Asset[];
   timestamp: number;
+  // 来自模型的文字响应（可选）
+  responseText?: string;
 }
 
 export interface Project {
@@ -64,4 +68,26 @@ export interface PromptHint {
   category: 'subject' | 'scene' | 'action' | 'style' | 'camera';
   text: string;
   example: string;
+}
+
+export interface Message {
+  id: string;
+  role: 'user' | 'assistant';
+  text?: string;
+  images?: string[];
+  imageUrl?: string;
+  timestamp: number;
+  mode?: 'generate' | 'edit' | 'mask';
+  parameters?: {
+    temperature?: number;
+    seed?: number;
+  };
+}
+
+export interface ChatSession {
+  id: string;
+  title: string;
+  messages: Message[];
+  createdAt: number;
+  updatedAt: number;
 }

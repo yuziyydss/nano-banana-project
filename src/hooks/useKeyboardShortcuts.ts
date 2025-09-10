@@ -4,10 +4,6 @@ import { useAppStore } from '../store/useAppStore';
 export const useKeyboardShortcuts = () => {
   const {
     setSelectedTool,
-    setShowHistory,
-    showHistory,
-    setShowPromptPanel,
-    showPromptPanel,
     currentPrompt,
     isGenerating
   } = useAppStore();
@@ -40,14 +36,7 @@ export const useKeyboardShortcuts = () => {
           event.preventDefault();
           setSelectedTool('mask');
           break;
-        case 'h':
-          event.preventDefault();
-          setShowHistory(!showHistory);
-          break;
-        case 'p':
-          event.preventDefault();
-          setShowPromptPanel(!showPromptPanel);
-          break;
+        // 移除了 h 和 p 快捷键，因为新界面不需要切换面板
         case 'r':
           if (event.shiftKey) {
             event.preventDefault();
@@ -59,5 +48,5 @@ export const useKeyboardShortcuts = () => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [setSelectedTool, setShowHistory, showHistory, setShowPromptPanel, showPromptPanel, currentPrompt, isGenerating]);
+  }, [setSelectedTool, currentPrompt, isGenerating]);
 };

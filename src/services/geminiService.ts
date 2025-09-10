@@ -26,7 +26,7 @@ export interface SegmentationRequest {
 }
 
 export class GeminiService {
-  async generateImage(request: GenerationRequest): Promise<string[]> {
+  async generateImage(request: GenerationRequest): Promise<{ images: string[]; text?: string }> {
     try {
       const contents: any[] = [{ text: request.prompt }];
       
@@ -48,21 +48,26 @@ export class GeminiService {
       });
 
       const images: string[] = [];
+      const texts: string[] = [];
 
-      for (const part of response.candidates[0].content.parts) {
-        if (part.inlineData) {
-          images.push(part.inlineData.data);
+      for (const part of response.candidates?.[0]?.content?.parts || []) {
+        if ((part as any).inlineData) {
+          images.push((part as any).inlineData.data);
+        }
+        if ((part as any).text) {
+          const t = String((part as any).text).trim();
+          if (t) texts.push(t);
         }
       }
 
-      return images;
+      return { images, text: texts.join('\n').trim() || undefined };
     } catch (error) {
       console.error('Error generating image:', error);
       throw new Error('Failed to generate image. Please try again.');
     }
   }
 
-  async editImage(request: EditRequest): Promise<string[]> {
+  async editImage(request: EditRequest): Promise<{ images: string[]; text?: string }> {
     try {
       const contents = [
         { text: this.buildEditPrompt(request) },
@@ -101,14 +106,19 @@ export class GeminiService {
       });
 
       const images: string[] = [];
+      const texts: string[] = [];
 
-      for (const part of response.candidates[0].content.parts) {
-        if (part.inlineData) {
-          images.push(part.inlineData.data);
+      for (const part of response.candidates?.[0]?.content?.parts || []) {
+        if ((part as any).inlineData) {
+          images.push((part as any).inlineData.data);
+        }
+        if ((part as any).text) {
+          const t = String((part as any).text).trim();
+          if (t) texts.push(t);
         }
       }
 
-      return images;
+      return { images, text: texts.join('\n').trim() || undefined };
     } catch (error) {
       console.error('Error editing image:', error);
       throw new Error('Failed to edit image. Please try again.');
@@ -145,7 +155,10 @@ Only segment the specific object or region requested. The mask should be a binar
         contents: prompt,
       });
 
-      const responseText = response.candidates[0].content.parts[0].text;
+      // 安全提取文字内容
+      const parts: any[] = (response as any)?.candidates?.[0]?.content?.parts || [];
+      const textPart: string | undefined = parts.find(p => p?.text)?.text;
+      const responseText: string = textPart ?? '{"masks":[]}';
       return JSON.parse(responseText);
     } catch (error) {
       console.error('Error segmenting image:', error);

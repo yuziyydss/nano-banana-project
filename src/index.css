@@ -1,7 +1,86 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+/* 本地化字体：请将 Inter 字体文件放在 src/assets/fonts/ 下 */
+@font-face {
+  font-family: 'Inter';
+  src: local('Inter'), url('./assets/fonts/Inter-Variable.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Inter';
+  src: local('Inter Italic'), url('./assets/fonts/Inter-Variable-Italic.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: italic;
+  font-display: swap;
+}
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* 自定义滚动条样式 - 仿照 index.vue */
+.chat-container {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0,0,0,0.28) transparent;
+  scrollbar-gutter: stable both-edges;
+  scroll-behavior: smooth;
+  height: 100%;
+  overflow-y: auto !important;
+}
+
+.chat-container::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.chat-container::-webkit-scrollbar-track {
+  background: transparent;
+  margin: 6px 0;
+}
+
+.chat-container::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #d9dde4, #c7ccd4);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.5);
+}
+
+.chat-container:hover::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #cfd5dd, #bcc3cd);
+}
+
+.chat-container::-webkit-scrollbar-thumb:active {
+  background: linear-gradient(180deg, #c0c7d1, #aeb6c2);
+}
+
+/* 固定高度textarea */
+.fixed-height-textarea {
+  overflow-y: auto;
+  resize: none;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0,0,0,0.2) transparent;
+}
+
+.fixed-height-textarea::-webkit-scrollbar {
+  width: 6px;
+}
+
+.fixed-height-textarea::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.fixed-height-textarea::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,0.2);
+  border-radius: 3px;
+}
+
+/* 文本截断 */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
 
 * {
   box-sizing: border-box;

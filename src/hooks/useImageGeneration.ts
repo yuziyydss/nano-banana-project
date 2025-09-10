@@ -9,69 +9,78 @@ export const useImageGeneration = () => {
 
   const generateMutation = useMutation({
     mutationFn: async (request: GenerationRequest) => {
-      const images = await geminiService.generateImage(request);
-      return images;
+      // 自动重试：若无图片且无文本，最多重试5次
+      const maxRetries = 5;
+      let attempt = 0;
+      let lastResult: { images: string[]; text?: string } | null = null;
+      while (attempt < maxRetries) {
+        attempt += 1;
+        const result = await geminiService.generateImage(request);
+        lastResult = result;
+        const hasImage = Array.isArray(result.images) && result.images.length > 0;
+        const hasText = !!(result.text && result.text.trim());
+        if (hasImage || hasText) {
+          return result; // { images, text }
+        }
+        // 渐进退避，避免打爆接口
+        await new Promise((r) => setTimeout(r, 400 * attempt));
+      }
+      // 仍为空则抛错
+      throw new Error('Empty result after 5 retries');
     },
     onMutate: () => {
       setIsGenerating(true);
     },
-    onSuccess: (images, request) => {
-      if (images.length > 0) {
-        const outputAssets: Asset[] = images.map((base64, index) => ({
+    onSuccess: (result, request) => {
+      const { images, text } = result;
+      const outputAssets: Asset[] = (images || []).map((base64) => ({
+        id: generateId(),
+        type: 'output',
+        url: `data:image/png;base64,${base64}`,
+        mime: 'image/png',
+        width: 1024,
+        height: 1024,
+        checksum: base64.slice(0, 32)
+      }));
+
+      const generation: Generation = {
+        id: generateId(),
+        prompt: request.prompt,
+        parameters: {
+          seed: request.seed,
+          temperature: request.temperature
+        },
+        sourceAssets: request.referenceImages && request.referenceImages.length > 0 ? request.referenceImages.map((img) => ({
           id: generateId(),
-          type: 'output',
-          url: `data:image/png;base64,${base64}`,
+          type: 'original' as const,
+          url: `data:image/png;base64,${img}`,
           mime: 'image/png',
-          width: 1024, // Default Gemini output size
+          width: 1024,
           height: 1024,
-          checksum: base64.slice(0, 32) // Simple checksum
-        }));
+          checksum: img.slice(0, 32)
+        })) : [],
+        outputAssets,
+        modelVersion: 'gemini-2.5-flash-image-preview',
+        timestamp: Date.now(),
+        responseText: text
+      };
 
-        const generation: Generation = {
-          id: generateId(),
-          prompt: request.prompt,
-          parameters: {
-            aspectRatio: '1:1',
-            seed: request.seed,
-            temperature: request.temperature
-          },
-          sourceAssets: request.referenceImage ? [{
-            id: generateId(),
-            type: 'original',
-            url: `data:image/png;base64,${request.referenceImages[0]}`,
-            mime: 'image/png',
-            width: 1024,
-            height: 1024,
-            checksum: request.referenceImages[0].slice(0, 32)
-          }] : request.referenceImages ? request.referenceImages.map((img, index) => ({
-            id: generateId(),
-            type: 'original' as const,
-            url: `data:image/png;base64,${img}`,
-            mime: 'image/png',
-            width: 1024,
-            height: 1024,
-            checksum: img.slice(0, 32)
-          })) : [],
-          outputAssets,
-          modelVersion: 'gemini-2.5-flash-image-preview',
-          timestamp: Date.now()
-        };
-
-        addGeneration(generation);
+      addGeneration(generation);
+      if (outputAssets.length > 0) {
         setCanvasImage(outputAssets[0].url);
-        
-        // Create project if none exists
-        if (!currentProject) {
-          const newProject = {
-            id: generateId(),
-            title: 'Untitled Project',
-            generations: [generation],
-            edits: [],
-            createdAt: Date.now(),
-            updatedAt: Date.now()
-          };
-          setCurrentProject(newProject);
-        }
+      }
+      
+      // Create project if none exists
+      if (!currentProject) {
+        const newProject = {
+          id: generateId(),
+          title: 'Untitled Project',
+          generations: [generation],
+          edits: [],
+          createdAt: Date.now(),
+          updatedAt: Date.now()
+        };
+        setCurrentProject(newProject);
       }
       setIsGenerating(false);
     },
@@ -105,6 +114,7 @@ export const useImageEditing = () => {
   const editMutation = useMutation({
     mutationFn: async (instruction: string) => {
       // Always use canvas image as primary target if available, otherwise use first uploaded image
+      const { uploadedImages } = useAppStore.getState();
       const sourceImage = canvasImage || uploadedImages[0];
       if (!sourceImage) throw new Error('No image to edit');
       
@@ -208,18 +218,18 @@ export const useImageEditing = () => {
         referenceImages: referenceImages.length > 0 ? referenceImages : undefined,
         maskImage,
         temperature,
-        seed
+        seed: seed || undefined
       };
       
-      const images = await geminiService.editImage(request);
-      return { images, maskedReferenceImage };
+      const { images, text } = await geminiService.editImage(request);
+      return { images, maskedReferenceImage, text };
     },
     onMutate: () => {
       setIsGenerating(true);
     },
-    onSuccess: ({ images, maskedReferenceImage }, instruction) => {
+    onSuccess: ({ images, maskedReferenceImage, text }, instruction) => {
       if (images.length > 0) {
-        const outputAssets: Asset[] = images.map((base64, index) => ({
+        const outputAssets: Asset[] = images.map((base64) => ({
           id: generateId(),
           type: 'output',
           url: `data:image/png;base64,${base64}`,
@@ -247,7 +257,8 @@ export const useImageEditing = () => {
           maskReferenceAsset,
           instruction,
           outputAssets,
-          timestamp: Date.now()
+          timestamp: Date.now(),
+          responseText: text
         };
 
         addEdit(edit);

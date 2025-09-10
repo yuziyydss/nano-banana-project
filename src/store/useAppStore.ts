@@ -1,10 +1,14 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
-import { Project, Generation, Edit, SegmentationMask, BrushStroke } from '../types';
+import { Project, Generation, Edit, BrushStroke, ChatSession, Message } from '../types';
 
 interface AppState {
   // Current project
   currentProject: Project | null;
+  
+  // Chat sessions
+  chatSessions: ChatSession[];
+  currentSessionId: string | null;
   
   // Canvas state
   canvasImage: string | null;
@@ -45,6 +49,7 @@ interface AppState {
   
   addUploadedImage: (url: string) => void;
   removeUploadedImage: (index: number) => void;
+  updateUploadedImage: (index: number, url: string) => void;
   clearUploadedImages: () => void;
   
   addEditReferenceImage: (url: string) => void;
@@ -70,6 +75,14 @@ interface AppState {
   setShowPromptPanel: (show: boolean) => void;
   
   setSelectedTool: (tool: 'generate' | 'edit' | 'mask') => void;
+  
+  // Chat session actions
+  createNewSession: () => string;
+  switchToSession: (sessionId: string) => void;
+  deleteSession: (sessionId: string) => void;
+  addMessageToCurrentSession: (message: Message) => void;
+  updateSessionTitle: (sessionId: string, title: string) => void;
+  getCurrentSession: () => ChatSession | null;
 }
 
 export const useAppStore = create<AppState>()(
@@ -77,6 +90,8 @@ export const useAppStore = create<AppState>()(
     (set, get) => ({
       // Initial state
       currentProject: null,
+      chatSessions: [],
+      currentSessionId: null,
       canvasImage: null,
       canvasZoom: 1,
       canvasPan: { x: 0, y: 0 },
@@ -112,6 +127,9 @@ export const useAppStore = create<AppState>()(
       })),
       removeUploadedImage: (index) => set((state) => ({ 
         uploadedImages: state.uploadedImages.filter((_, i) => i !== index) 
+      })),
+      updateUploadedImage: (index, url) => set((state) => ({
+        uploadedImages: state.uploadedImages.map((u, i) => (i === index ? url : u))
       })),
       clearUploadedImages: () => set({ uploadedImages: [] }),
       
@@ -158,6 +176,81 @@ export const useAppStore = create<AppState>()(
       setShowPromptPanel: (show) => set({ showPromptPanel: show }),
       
       setSelectedTool: (tool) => set({ selectedTool: tool }),
+      
+      // Chat session actions
+      createNewSession: () => {
+        const newSessionId = `session-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+        const newSession: ChatSession = {
+          id: newSessionId,
+          title: '新对话',
+          messages: [],
+          createdAt: Date.now(),
+          updatedAt: Date.now()
+        };
+        
+        set((state) => ({
+          chatSessions: [...state.chatSessions, newSession],
+          currentSessionId: newSessionId
+        }));
+        
+        return newSessionId;
+      },
+      
+      switchToSession: (sessionId) => set({ 
+        currentSessionId: sessionId,
+        // 切换会话时清理与会话绑定的易混淆临时状态
+        canvasImage: null,
+        uploadedImages: [],
+        editReferenceImages: [],
+        brushStrokes: []
+      }),
+      
+      deleteSession: (sessionId) => set((state) => {
+        const updatedSessions = state.chatSessions.filter(s => s.id !== sessionId);
+        const newCurrentId = state.currentSessionId === sessionId 
+          ? (updatedSessions.length > 0 ? updatedSessions[0].id : null)
+          : state.currentSessionId;
+        
+        return {
+          chatSessions: updatedSessions,
+          currentSessionId: newCurrentId
+        };
+      }),
+      
+      addMessageToCurrentSession: (message) => set((state) => {
+        if (!state.currentSessionId) return state;
+        
+        const updatedSessions = state.chatSessions.map(session => {
+          if (session.id === state.currentSessionId) {
+            const updatedSession = {
+              ...session,
+              messages: [...session.messages, message],
+              updatedAt: Date.now()
+            };
+            
+            // 自动更新标题（如果是第一条用户消息）
+            if (session.messages.length === 0 && message.role === 'user' && message.text) {
+              updatedSession.title = message.text.slice(0, 20) + (message.text.length > 20 ? '...' : '');
+            }
+            
+            return updatedSession;
+          }
+          return session;
+        });
+        
+        return { chatSessions: updatedSessions };
+      }),
+      
+      updateSessionTitle: (sessionId, title) => set((state) => ({
+        chatSessions: state.chatSessions.map(session =>
+          session.id === sessionId ? { ...session, title, updatedAt: Date.now() } : session
+        )
+      })),
+      
+      getCurrentSession: () => {
+        const state = get();
+        return state.chatSessions.find(s => s.id === state.currentSessionId) || null;
+      }
     }),
     { name: 'nano-banana-store' }
   )
