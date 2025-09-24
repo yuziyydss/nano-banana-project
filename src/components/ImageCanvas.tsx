@@ -82,7 +82,7 @@ export const ImageCanvas: React.FC = () => {
     
     setIsDrawing(true);
     const stage = e.target.getStage();
-    const pos = stage.getPointerPosition();
+    const _pos = stage.getPointerPosition();
     
     // Use Konva's getRelativePointerPosition for accurate coordinates
     const relativePos = stage.getRelativePointerPosition();
@@ -105,7 +105,7 @@ export const ImageCanvas: React.FC = () => {
     if (!isDrawing || selectedTool !== 'mask' || !image) return;
     
     const stage = e.target.getStage();
-    const pos = stage.getPointerPosition();
+    const _pos = stage.getPointerPosition();
     
     // Use Konva's getRelativePointerPosition for accurate coordinates
     const relativePos = stage.getRelativePointerPosition();

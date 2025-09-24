@@ -1,9 +1,20 @@
 import React from 'react';
 import { useAppStore } from '../store/useAppStore';
 import { Button } from './ui/Button';
-import { History, Download, Image as ImageIcon, Layers } from 'lucide-react';
+import { History, Download, Image as ImageIcon } from 'lucide-react';
 import { cn } from '../utils/cn';
 import { ImagePreviewModal } from './ImagePreviewModal';
+
+// 新增：根据模型版本返回徽章显示文案和样式
+const getModelBadge = (modelVersion?: string): { label: string; className: string } => {
+  const v = (modelVersion || '').toLowerCase();
+  -  if (v.includes('flux')) return { label: 'Flux', className: 'bg-blue-900/80 text-blue-200' };
+  +  if (v.includes('flux')) return { label: 'Flux', className: 'bg-blue-900/80 text-blue-200' };
+  +  if (v.includes('gpt-image-1')) return { label: 'GPT Image-1', className: 'bg-emerald-900/80 text-emerald-200' };
+  if (v.includes('seedream')) return { label: 'SeeDream', className: 'bg-purple-900/80 text-purple-200' };
+  if (v.includes('gemini')) return { label: 'Gemini', className: 'bg-cyan-900/80 text-cyan-200' };
+  return { label: modelVersion || 'Unknown', className: 'bg-gray-900/80 text-gray-300' };
+};
 
 export const HistoryPanel: React.FC = () => {
   const {
@@ -131,6 +142,11 @@ export const HistoryPanel: React.FC = () => {
                 <div className="absolute top-2 left-2 bg-gray-900/80 text-xs px-2 py-1 rounded">
                   #{index + 1}
                 </div>
+
+                {/* 新增：模型标记 */}
+                <div className={cn('absolute top-2 right-2 text-xs px-2 py-1 rounded', getModelBadge(generation.modelVersion).className)}>
+                  {getModelBadge(generation.modelVersion).label}
+                </div>
               </div>
             ))}
             
@@ -167,6 +183,11 @@ export const HistoryPanel: React.FC = () => {
                 {/* Edit Label */}
                 <div className="absolute top-2 left-2 bg-purple-900/80 text-xs px-2 py-1 rounded">
                   Edit #{index + 1}
+                </div>
+
+                {/* 新增：模型标记（编辑） */}
+                <div className={cn('absolute top-2 right-2 text-xs px-2 py-1 rounded', getModelBadge(edit.modelVersion).className)}>
+                  {getModelBadge(edit.modelVersion).label}
                 </div>
               </div>
             ))}
@@ -267,6 +288,13 @@ export const HistoryPanel: React.FC = () => {
                     <span>Type:</span>
                     <span>Image Edit</span>
                   </div>
++                 {/* 新增：显示编辑使用的模型 */}
++                 {selectedEdit.modelVersion && (
++                   <div className="flex justify-between">
++                     <span>Model:</span>
++                     <span>{selectedEdit.modelVersion}</span>
++                   </div>
++                 )}
                   <div className="flex justify-between">
                     <span>Created:</span>
                     <span>{new Date(selectedEdit.timestamp).toLocaleTimeString()}</span>

@@ -23,6 +23,14 @@ export default tseslint.config(
         'warn',
         { allowConstantExport: true },
       ],
+      // Relax TS strictness for pragmatic development: allow `any` where necessary
+      '@typescript-eslint/no-explicit-any': 'off',
+      // Turn unused-vars into warnings and ignore _-prefixed args/vars
+      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_', ignoreRestSiblings: true }],
+      // Allow empty-object-type extensions in simple UI prop wrappers
+      '@typescript-eslint/no-empty-object-type': 'off',
+      // Allow using the Function type in some framework-style APIs
+      '@typescript-eslint/no-unsafe-function-type': 'off',
     },
   }
 );

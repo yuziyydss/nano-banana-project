@@ -31,6 +31,8 @@ export interface Edit {
   maskReferenceAsset?: Asset;
   instruction: string;
   outputAssets: Asset[];
+  // 新增：记录编辑使用的模型版本（用于历史缩略图徽章显示）
+  modelVersion?: string;
   timestamp: number;
   // 来自模型的文字响应（可选）
   responseText?: string;

@@ -2,7 +2,8 @@ import React from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ChatInterface } from './components/ChatInterface';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
-import { useAppStore } from './store/useAppStore';
+// Removed unused: import { useAppStore } from './store/useAppStore';
+import { Header } from './components/Header';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -17,7 +18,8 @@ function AppContent() {
   useKeyboardShortcuts();
   
   return (
-    <div className="min-h-screen" style={{ background: '#f7f7f8' }}>
+    <div className="h-screen flex flex-col min-h-0" style={{ background: '#f7f7f8' }}>
+      <Header />
       <ChatInterface />
     </div>
   );

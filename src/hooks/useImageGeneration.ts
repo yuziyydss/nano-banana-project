@@ -1,26 +1,34 @@
 import { useMutation } from '@tanstack/react-query';
 import { geminiService, GenerationRequest, EditRequest } from '../services/geminiService';
+import { fluxService } from '../services/fluxService';
 import { useAppStore } from '../store/useAppStore';
 import { generateId } from '../utils/imageUtils';
 import { Generation, Edit, Asset } from '../types';
-
+import { seedreamService } from '../services/seedreamService';
+import { gptImage1Service } from '../services/gptImage1Service';
+// hotfix: force rebuild after removing stray diff artifact
 export const useImageGeneration = () => {
   const { addGeneration, setIsGenerating, setCanvasImage, setCurrentProject, currentProject } = useAppStore();
+  const { selectedModel } = useAppStore();
 
   const generateMutation = useMutation({
     mutationFn: async (request: GenerationRequest) => {
       // 自动重试：若无图片且无文本，最多重试5次
       const maxRetries = 5;
       let attempt = 0;
-      let lastResult: { images: string[]; text?: string } | null = null;
+// 移除未使用的变量声明
       while (attempt < maxRetries) {
         attempt += 1;
-        const result = await geminiService.generateImage(request);
-        lastResult = result;
+        const result = selectedModel === 'flux'
+          ? await fluxService.generateImage({ prompt: request.prompt, referenceImages: request.referenceImages })
+          : selectedModel === 'seedream'
+          ? await seedreamService.generateImage({ prompt: request.prompt, referenceImages: request.referenceImages })
+          : await geminiService.generateImage(request);
+// 移除未使用的赋值语句
         const hasImage = Array.isArray(result.images) && result.images.length > 0;
         const hasText = !!(result.text && result.text.trim());
         if (hasImage || hasText) {
-          return result; // { images, text }
+          return { ...result, _model: selectedModel } as any; // carry model for onSuccess labeling
         }
         // 渐进退避，避免打爆接口
         await new Promise((r) => setTimeout(r, 400 * attempt));
@@ -31,9 +39,9 @@ export const useImageGeneration = () => {
     onMutate: () => {
       setIsGenerating(true);
     },
-    onSuccess: (result, request) => {
+    onSuccess: (result: any, request) => {
       const { images, text } = result;
-      const outputAssets: Asset[] = (images || []).map((base64) => ({
+      const outputAssets: Asset[] = ((images || []) as string[]).map((base64: string) => ({
         id: generateId(),
         type: 'output',
         url: `data:image/png;base64,${base64}`,
@@ -50,7 +58,7 @@ export const useImageGeneration = () => {
           seed: request.seed,
           temperature: request.temperature
         },
-        sourceAssets: request.referenceImages && request.referenceImages.length > 0 ? request.referenceImages.map((img) => ({
+        sourceAssets: request.referenceImages && request.referenceImages.length > 0 ? request.referenceImages.map((img: string) => ({
           id: generateId(),
           type: 'original' as const,
           url: `data:image/png;base64,${img}`,
@@ -60,7 +68,7 @@ export const useImageGeneration = () => {
           checksum: img.slice(0, 32)
         })) : [],
         outputAssets,
-        modelVersion: 'gemini-2.5-flash-image-preview',
+        modelVersion: result?._model === 'flux' ? 'azure-flux' : (result?._model === 'seedream' ? 'seedream-4.0' : 'gemini-2.5-flash-image-preview'),
         timestamp: Date.now(),
         responseText: text
       };
@@ -110,6 +118,7 @@ export const useImageEditing = () => {
     seed,
     temperature 
   } = useAppStore();
+  const { selectedModel } = useAppStore();
 
   const editMutation = useMutation({
     mutationFn: async (instruction: string) => {
@@ -221,15 +230,36 @@ export const useImageEditing = () => {
         seed: seed || undefined
       };
       
-      const { images, text } = await geminiService.editImage(request);
-      return { images, maskedReferenceImage, text };
+      let images: string[] = [];
+      let text: string | undefined = undefined;
+      if (selectedModel === 'flux') {
+      const { images: imgs, text: t } = await fluxService.editImage({
+      instruction,
+      originalImage: base64Image,
+      referenceImages: referenceImages.length > 0 ? referenceImages : undefined,
+      maskImage,
+      });
+      images = imgs; text = t;
+      } else if (selectedModel === 'seedream') {
+        const { images: imgs, text: t } = await seedreamService.editImage({
+          instruction,
+          originalImage: base64Image,
+          referenceImages: referenceImages.length > 0 ? referenceImages : undefined,
+          maskImage,
+        });
+        images = imgs; text = t;
+      } else {
+      const res = await geminiService.editImage(request);
+      images = res.images; text = res.text;
+      }
+      return { images, maskedReferenceImage, text, _model: selectedModel };
     },
     onMutate: () => {
       setIsGenerating(true);
     },
-    onSuccess: ({ images, maskedReferenceImage, text }, instruction) => {
+    onSuccess: ({ images, maskedReferenceImage, text, _model }, instruction) => {
       if (images.length > 0) {
-        const outputAssets: Asset[] = images.map((base64) => ({
+        const outputAssets: Asset[] = images.map((base64: string) => ({
           id: generateId(),
           type: 'output',
           url: `data:image/png;base64,${base64}`,
@@ -257,6 +287,7 @@ export const useImageEditing = () => {
           maskReferenceAsset,
           instruction,
           outputAssets,
+          modelVersion: _model === 'flux' ? 'azure-flux' : (_model === 'seedream' ? 'seedream-4.0' : 'gemini-2.5-flash-image-preview'),
           timestamp: Date.now(),
           responseText: text
         };

@@ -40,6 +40,8 @@ interface AppState {
   
   // UI state
   selectedTool: 'generate' | 'edit' | 'mask';
+  selectedModel: 'gemini' | 'flux' | 'seedream' | 'gpt-image-1';
+  setSelectedModel: (m: 'gemini' | 'flux' | 'seedream' | 'gpt-image-1') => void;
   
   // Actions
   setCurrentProject: (project: Project | null) => void;
@@ -115,6 +117,7 @@ export const useAppStore = create<AppState>()(
       showPromptPanel: true,
       
       selectedTool: 'generate',
+      selectedModel: 'gemini',
       
       // Actions
       setCurrentProject: (project) => set({ currentProject: project }),
@@ -176,6 +179,7 @@ export const useAppStore = create<AppState>()(
       setShowPromptPanel: (show) => set({ showPromptPanel: show }),
       
       setSelectedTool: (tool) => set({ selectedTool: tool }),
+      setSelectedModel: (m) => set({ selectedModel: m }),
       
       // Chat session actions
       createNewSession: () => {

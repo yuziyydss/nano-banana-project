@@ -908,7 +908,7 @@ export const ChatInterface: React.FC = () => {
   };
 
   return (
-    <div className="h-screen flex" style={{ background: '#f7f7f8' }}>
+    <div className="flex-1 min-h-0 flex" style={{ background: '#f7f7f8' }}>
       {/* 左侧对话列表 */}
       <div className="w-80 bg-gray-900 text-white flex flex-col">
         {/* 新建对话按钮 */}

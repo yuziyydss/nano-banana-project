@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import { Button } from './ui/Button';
 import { HelpCircle } from 'lucide-react';
 import { InfoModal } from './InfoModal';
+import { useAppStore } from '../store/useAppStore';
 
 export const Header: React.FC = () => {
   const [showInfoModal, setShowInfoModal] = useState(false);
+  const { selectedModel, setSelectedModel } = useAppStore();
 
   return (
     <>
@@ -24,7 +26,21 @@ export const Header: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-2">
+            <label className="text-xs text-gray-400">选择模型</label>
+            <select
+              value={selectedModel}
+              onChange={(e) => setSelectedModel(e.target.value as 'gemini' | 'flux' | 'seedream' | 'gpt-image-1')}
+              className="bg-gray-900 border border-red-500 text-gray-100 text-sm rounded px-2 py-1"
+            >
+              <option value="gemini">Gemini</option>
+              <option value="flux">FLUX</option>
+              <option value="seedream">Seedream</option>
+              <option value="gpt-image-1">GPT Image-1</option>
+            </select>
+          </div>
+
           <Button 
             variant="ghost" 
             size="icon"

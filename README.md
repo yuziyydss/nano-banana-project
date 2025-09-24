@@ -224,3 +224,112 @@ We welcome contributions! Please:
 ---
 
 **Built by [Mark Fulton](https://markfulton.com)** | **Powered by Gemini 2.5 Flash Image** | **Made with Bolt.new**
+
+## 🆕 Backend Integration and Multi-Provider Support
+
+This project now includes a Node.js/Express backend proxy with three image models, all exposed under /api via Vite proxy:
+
+- Azure OpenAI gpt-image-1: high-quality text-to-image and image editing
+- Azure FLUX: fast and flexible image generations and edits
+- SeeDream 4.0 (Volcengine): powerful multi-image generation with b64_json output
+
+The frontend model switch lets you choose among gpt-image-1, flux, and seedream right in the UI.
+
+### Dev Quick Start (Backend + Frontend)
+
+1) Backend (server)
+- Configure environment:
+  - Copy server/.env from server/env.example (or create server/.env) and fill provider keys
+- Install and run
+  ```bash
+  cd server
+  npm install
+  npm run dev
+  ```
+  This starts the backend on http://localhost:3001
+
+2) Frontend (root)
+```bash
+npm install
+npm run dev
+```
+Open the URL shown by Vite (e.g., http://localhost:5173 or 5176). Requests to /api/* are proxied to the backend.
+
+### API Endpoints
+
+All endpoints return base64 images in { images: string[] }.
+
+- gpt-image-1 (Azure OpenAI)
+  - POST /api/gpt-image-1/generate
+    - Body (JSON): { prompt: string, n?: number, size?: string, quality?: 'high'|'standard', output_format?: 'png' }
+  - POST /api/gpt-image-1/edit
+    - Body (JSON): { instruction: string, originalImage: base64|dataURL, referenceImages?: (base64|dataURL)[], maskImage?: base64|dataURL, n?: number, size?: string, quality?: string }
+
+- FLUX (Azure)
+  - POST /api/flux/generate
+    - Body (JSON): { prompt: string, n?: number, size?: string, output_format?: 'png' }
+  - POST /api/flux/edit
+    - Body (JSON): { instruction: string, originalImage: base64|dataURL, referenceImages?: (base64|dataURL)[], maskImage?: base64|dataURL, size?: string }
+
+- SeeDream 4.0 (Volcengine)
+  - POST /api/seedream/generate
+    - Body (JSON): { prompt: string, size?: string, max_images?: number, stream?: boolean, originalImage?: base64|dataURL, referenceImages?: (base64|dataURL)[] }
+  - POST /api/seedream/edit
+    - Body (JSON): { instruction: string, originalImage?: base64|dataURL, referenceImages?: (base64|dataURL)[], size?: string, max_images?: number }
+
+Note: GET /api/flux/generate and /api/seedream/generate are not for real generations; use POST with JSON body.
+
+### Server Environment Variables (server/.env)
+
+Do NOT commit secrets. Ensure server/.env is gitignored (already configured).
+
+Core
+```env
+PORT=3001
+CORS_ORIGIN=http://localhost:5173
+ALLOW_NO_REDIS=1
+DISABLE_AUTH=1
+```
+
+Azure OpenAI (gpt-image-1)
+```env
+AZURE_OPENAI_ENDPOINT=
+AZURE_OPENAI_API_KEY=
+# optional override names
+AZURE_OPENAI_DEPLOYMENT_NAME=gpt-image-1
+AZURE_OPENAI_DEPLOYMENT=gpt-image-1
+AZURE_OPENAI_API_VERSION=2025-03-01-preview
+AZURE_OPENAI_API_VERSION_EDITS=2025-04-01-preview
+# mock switch (for local demo without calling the API)
+MOCK_GPT_IMAGE_1=0
+```
+
+Azure FLUX
+```env
+AZURE_FLUX_ENDPOINT=
+AZURE_FLUX_DEPLOYMENT=
+AZURE_FLUX_API_VERSION=2025-04-01-preview
+AZURE_FLUX_API_KEY=
+# mock switch (disabled by default)
+MOCK_FLUX=0
+```
+
+SeeDream 4.0
+```env
+SEEDREAM4_BASE_URL=https://ark.cn-beijing.volces.com/api/v3/images/generations
+SEEDREAM4_API_KEY=
+SEEDREAM_MODEL_ID=doubao-seedream-4-0-250828
+```
+
+### Model Switching in the UI
+
+- Use the model dropdown in the header to choose gpt-image-1, flux, or seedream.
+- The app routes requests to the corresponding backend endpoint and renders base64 results.
+
+### Troubleshooting
+
+- 401/403 Unauthorized: Check your provider API keys in server/.env and service subscription/region.
+- 405 Method Not Allowed: Use POST with JSON body for /api/*/generate.
+- 500 Internal Error: See server terminal logs (nodemon restarts automatically on code changes).
+- CORS or network errors: Ensure CORS_ORIGIN matches the Vite URL and Vite proxy forwards /api to http://localhost:3001.
+- Mocking: You can set MOCK_FLUX=1 or MOCK_GPT_IMAGE_1=1 to return a 1x1 placeholder image for UI testing without hitting providers.
